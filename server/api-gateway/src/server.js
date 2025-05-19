@@ -70,13 +70,6 @@ app.use(
   })
 );
 
-app.use(
-  "/v1/subscription",
-  authMiddleware,
-  proxy(SUBSCRIPTION_SERVICE, {
-    ...proxyOptions,
-  })
-);
 
 app.use(
   "/v1/admin",

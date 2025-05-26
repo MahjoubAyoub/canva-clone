@@ -31,6 +31,12 @@ export const useEditorStore = create((set, get) => ({
   lastModified: Date.now(),
   isModified: false,
 
+  isPublic: false,
+  setIsPublic: (flag) => set({ isPublic: flag }),
+
+  publicLoading: false,
+  setPublicLoading: (flag) => set({ publicLoading: flag }),
+
   markAsModified: () => {
     const designId = get().designId;
 
@@ -90,16 +96,16 @@ export const useEditorStore = create((set, get) => ({
   showDesignsModal: false,
   setShowDesignsModal: (flag) => set({ showDesignsModal: flag }),
 
-  resetStore: () => {
-    set({
+  resetStore: (preserveDesignId = false) => {
+    set((state) => ({
       canvas: null,
-      designId: null,
+      designId: preserveDesignId ? state.designId : null,
       isEditing: true,
       name: "Untitled Design",
       showProperties: false,
       saveStatus: "Saved",
       isModified: false,
       lastModified: Date.now(),
-    });
+    }));
   },
 }));

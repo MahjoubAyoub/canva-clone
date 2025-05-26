@@ -87,12 +87,20 @@ function DesignPreview({ design }) {
   }, [design?._id, canvasId]);
 
   return (
-    <canvas
-      id={canvasId}
-      width="300"
-      height="300"
-      className="h-full w-full object-contain"
-    />
+    <>
+      {design?.canvasData && design?.canvasData !== "" ? (
+        <canvas
+          id={canvasId}
+          width="300"
+          height="300"
+          className="!h-full !w-full object-cover object-center"
+        />
+      ) : (
+        <div className="w-full h-full min-h-[300px] min-w-[300px] flex items-center justify-center bg-gray-100 text-gray-400 text-lg font-semibold rounded">
+          No preview
+        </div>
+      )}
+    </>
   );
 }
 

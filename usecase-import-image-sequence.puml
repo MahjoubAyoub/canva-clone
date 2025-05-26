@@ -1,0 +1,21 @@
+@startuml
+actor Utilisateur
+participant "Interface Graphique" as IG
+participant "Système de Fichiers" as SF
+participant "Générateur IA" as IA
+participant "Canvas" as Canvas
+
+Utilisateur -> IG : Demander importation d'image
+IG -> Utilisateur : Afficher choix source (Device ou IA)
+Utilisateur -> IG : Sélectionner source
+alt Depuis le device
+  IG -> SF : Ouvrir explorateur de fichiers
+  SF -> IG : Retourner image sélectionnée
+  IG -> Canvas : Ajouter image au canvas
+else Depuis un générateur IA
+  IG -> IA : Demander génération d'image
+  IA -> IG : Retourner image générée
+  IG -> Canvas : Ajouter image au canvas
+end
+IG -> Utilisateur : Confirmer ajout de l'image
+@enduml

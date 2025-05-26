@@ -7,6 +7,7 @@ const authMiddleware = require("./middleware/auth-middleware");
 const mongoose = require("mongoose");
 const googleAuthRoutes = require("./google-auth-routes");
 const userRoutes = require("./user-routes");
+const authRoutes = require("./auth-routes");
 
 const app = express();
 const PORT = 5004; // Hardcoded port for the API Gateway
@@ -25,7 +26,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Proxy options
+// Proxy options for most services
 const proxyOptions = {
   proxyReqPathResolver: (req) => {
     return req.originalUrl.replace(/^\/v1/, "/api");
@@ -44,6 +45,7 @@ const UPLOAD_SERVICE = "http://localhost:5002";
 const SUBSCRIPTION_SERVICE = "http://localhost:5000";
 const ADMIN_SERVICE = "http://localhost:4004";
 
+// Use default proxyOptions for /v1/designs, /v1/media, etc.
 app.use(
   "/v1/designs",
   authMiddleware,
@@ -70,17 +72,35 @@ app.use(
   })
 );
 
-
+// Use a direct proxy for /v1/admin (no /api prefix)
 app.use(
   "/v1/admin",
   proxy(ADMIN_SERVICE, {
-    ...proxyOptions,
     proxyReqPathResolver: (req) => req.originalUrl.replace(/^\/v1\/admin/, ""),
+    proxyErrorHandler: proxyOptions.proxyErrorHandler,
   })
 );
 
 app.use("/auth", googleAuthRoutes);
 app.use("/user", userRoutes);
+app.use("/auth", authRoutes);
+
+app.use(
+  "/v1/templates",
+  proxy(DESIGN_SERVICE, {
+    ...proxyOptions,
+    proxyReqPathResolver: (req) => req.originalUrl.replace(/^\/v1\/templates/, "/api/designs/public/all"),
+  })
+);
+
+app.use(
+  "/v1/designs/:id/public",
+  authMiddleware,
+  proxy(DESIGN_SERVICE, {
+    ...proxyOptions,
+    proxyReqPathResolver: (req) => req.originalUrl.replace(/^\/v1\/designs\/(.*)\/public/, "/api/designs/$1/public"),
+  })
+);
 
 app.listen(PORT, () => {
   console.log(`API Gateway is running on port ${PORT}`);

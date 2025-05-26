@@ -10,5 +10,13 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/designs/:id/public',
+        destination: 'http://localhost:5004/v1/designs/:id/public',
+      },
+    ];
+  },
 };
 export default nextConfig;

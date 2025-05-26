@@ -74,8 +74,8 @@ function Properties() {
         setSelectedObject(activeObject);
         //update common properties
         setOpacity(Math.round(activeObject.opacity * 100) || 100);
-        setWidth(Math.round(activeObject.width * activeObject.scaleX));
-        setHeight(Math.round(activeObject.height * activeObject.scaleY));
+        setWidth(Math.round(activeObject.width));
+        setHeight(Math.round(activeObject.height));
         setBorderColor(activeObject.stroke || "#000000");
         setBorderWidth(activeObject.strokeWidth || 0);
 

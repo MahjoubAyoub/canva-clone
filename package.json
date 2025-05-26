@@ -1,0 +1,14 @@
+{
+  "name": "designih",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "client": "npm --prefix client run dev",
+    "server": "concurrently \"npm --prefix server/admin-service run dev\" \"npm --prefix server/api-gateway run dev\" \"npm --prefix server/design-service run dev\" \"npm --prefix server/upload-service run dev\""
+  },
+  "author": "Ayoub",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

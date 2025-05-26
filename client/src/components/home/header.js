@@ -10,16 +10,42 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 function Header() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   const handleLogout = async () => {
-    await signOut();
+    await signOut({ redirect: false });
+    router.push("/login"); // Redirect to login page
   };
+
+  if (status === "loading") {
+    return null; // or a loading spinner
+  }
+
+  if (!session) {
+    // Optionally, redirect to login or show nothing
+    return null;
+  }
 
   return (
     <header className="h-16 border-b border-gray-200 bg-white flex items-center px-6 fixed top-0 right-0 left-[72px] z-10">
+      <div className="flex items-center gap-4">
+        <Link
+          href="/dashboard-user"
+          className="text-3xl font-extrabold text-transparent drop-shadow-lg tracking-tight hover:text-pink-200 transition-colors cursor-pointer select-none"
+          style={{
+            WebkitTextStroke: '2px #a855f7',
+            color: 'transparent',
+            textShadow: '0 2px 8px rgba(168,85,247,0.10)'
+          }}
+        >
+          Designih
+        </Link>
+      </div>
       <div className="flex-1 max-w-2xl mx-auto relative">
         <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         <Input

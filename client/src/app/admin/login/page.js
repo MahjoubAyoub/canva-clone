@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
             <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-2xl font-bold animate-bounce">
               D
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mt-4">Welcome to Desigih!</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mt-4">Welcome to Designih!</h2>
             <p className="text-gray-500 mt-2">Log in to spread some joy!</p>
           </div>
           {error && (
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
             </button>
           </form>
           <p className="text-center text-sm text-gray-500 mt-6">
-            Designed with ❤️ by <span className="font-semibold text-pink-500">Desigih</span>
+            Designed with ❤️ by <span className="font-semibold text-pink-500">Designih</span>
           </p>
         </div>
       </div>

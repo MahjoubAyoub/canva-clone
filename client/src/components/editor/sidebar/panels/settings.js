@@ -117,14 +117,14 @@ function SettingsPanel() {
             value={canvasWidth}
             onChange={(e) => setCanvasWidth(Number(e.target.value))}
             placeholder="Width"
-            className="flex-1"
+            
           />
           <Input
             type="number"
             value={canvasHeight}
             onChange={(e) => setCanvasHeight(Number(e.target.value))}
             placeholder="Height"
-            className="flex-1"
+           
           />
         </div>
         <Button className="w-full mt-4" onClick={handleCanvasResize}>

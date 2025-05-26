@@ -16,7 +16,6 @@ function DesignTypes() {
 
   const handleCreateNewDesign = async (getCurrentType, index) => {
     setCurrentSelectedType(index);
-   
     if (loading) return;
     try {
       setLoading(true);

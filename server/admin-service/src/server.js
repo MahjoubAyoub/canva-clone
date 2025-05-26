@@ -23,6 +23,7 @@ mongoose.connect(MONGODB_URI).then(() => console.log('Connected to MongoDB (admi
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const admin = await Admin.findOne({ email });
+  console.log('Admin login attempt:', email, 'Found:', !!admin, 'Hash:', admin && admin.passwordHash);
   if (!admin || !bcrypt.compareSync(password, admin.passwordHash)) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
@@ -66,6 +67,7 @@ const userSchema = new mongoose.Schema({
       message: { type: String },
     },
   ],
+  archived: { type: Boolean, default: false }, // Add archived flag
 });
 
 const User = userConnection.model('User', userSchema);
@@ -179,6 +181,62 @@ app.delete('/users/:id', auth, async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Failed to delete user', error: err.message });
+  }
+});
+
+// Archive a user
+app.patch('/users/:id/archive', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(id, { archived: true }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ message: 'User archived successfully', user });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to archive user', error: err.message });
+  }
+});
+
+// Unarchive a user
+app.patch('/users/:id/unarchive', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(id, { archived: false }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ message: 'User unarchived successfully', user });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to unarchive user', error: err.message });
+  }
+});
+
+// Get all designs for a specific user (support both _id and googleId)
+app.get('/users/:userId/designs', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    // Find designs by userId (could be _id or googleId)
+    const designs = await Design.find({
+      $or: [
+        { userId: user._id.toString() },
+        user.googleId ? { userId: user.googleId } : null
+      ].filter(Boolean)
+    });
+    res.json(designs);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch designs', error: err.message });
+  }
+});
+
+// Endpoint to delete a design by ID
+app.delete('/designs/:designId', auth, async (req, res) => {
+  try {
+    const { designId } = req.params;
+    const result = await Design.findByIdAndDelete(designId);
+    if (!result) {
+      return res.status(404).json({ message: 'Design not found' });
+    }
+    res.json({ message: 'Design deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete design', error: err.message });
   }
 });
 

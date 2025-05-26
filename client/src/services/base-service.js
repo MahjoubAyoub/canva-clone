@@ -15,6 +15,9 @@ export async function fetchWithAuth(endpoint, options = {}) {
   console.log("Token:", session.idToken);
   console.log("Authorization header:", `Bearer ${session.idToken}`);
 
+  // Log the endpoint and token for debugging
+  console.log("fetchWithAuth: endpoint=", endpoint, "token=", session.idToken);
+
   console.log("Making request to:", `${API_URL}${endpoint}`);
   console.log("Request headers:", {
     Authorization: `Bearer ${session.idToken}`,

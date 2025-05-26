@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import axios from "axios";
 
@@ -22,6 +22,11 @@ export default function UserUpsert() {
         name: session.user.name,
         email: session.user.email,
         image: session.user.image,
+      }).then((res) => {
+        if (res.data && res.data.archived) {
+          alert("Your account is archived. Please contact admin.");
+          signOut();
+        }
       }).catch((err) => {
         console.error("User upsert failed", err);
       });

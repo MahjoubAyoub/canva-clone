@@ -53,3 +53,17 @@ export async function saveCanvasState(
     throw error;
   }
 }
+
+export async function setDesignPublic(designId, isPublic) {
+  return fetchWithAuth(`/v1/designs/${designId}/public`, {
+    method: "PATCH",
+    body: JSON.stringify({ public: isPublic }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export async function getPublicTemplates() {
+  return fetchWithAuth("/v1/templates");
+}

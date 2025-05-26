@@ -8,8 +8,6 @@ import { useEffect } from "react";
 export default function EditorPage() {
   const { setUserSubscription, setUserDesigns } = useEditorStore();
 
-
-
   async function fetchUserDesigns() {
     const result = await getUserDesigns();
 

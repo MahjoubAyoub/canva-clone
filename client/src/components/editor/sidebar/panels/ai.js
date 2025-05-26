@@ -65,7 +65,7 @@ function AiPanel() {
             value={prompt}
             onChange={handlePromptChange}
             placeholder="e.g., A cute dog image..."
-            className={"resize-none min-h-[200px]"}
+            className={"resize-none min-h-[100px]"}
             disabled={isLoading}
           />
         </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import Image from "next/image";
+import AdminUserProjectsModal from "@/components/admin-user-projects-modal"; // Adjust the import path as necessary
 
 export default function AdminDashboard() {
   const [kpis, setKpis] = useState(null);
@@ -13,6 +14,7 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("desc");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showProjects, setShowProjects] = useState(false);
   const usersPerPage = 10;
   const router = useRouter();
 
@@ -55,24 +57,35 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-3xl shadow-xl p-8 text-red-600 text-center animate-pulse">{error}</div>
     </div>
   );
-  if (!kpis || !stats) return (
+  if (
+  !kpis ||
+  !stats ||
+  !Array.isArray(users) ||
+  !Array.isArray(stats.uploadsPerDay) ||
+  !Array.isArray(stats.designsPerDay) ||
+  !Array.isArray(stats.usersPerDay)
+) {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 via-orange-300 to-pink-300 p-4">
       <div className="bg-white rounded-3xl shadow-xl p-8 text-gray-800 text-center animate-pulse">Loading...</div>
     </div>
   );
+}
 
-  // Prepare data for Recharts
-  const chartData = stats.uploadsPerDay.map((upload, index) => ({
-    day: `Day ${index + 1}`,
-    uploads: upload,
-    designs: stats.designsPerDay[index],
-    users: stats.usersPerDay[index],
-  }));
+// Prepare data for Recharts
+const chartData = stats.uploadsPerDay.map((upload, index) => ({
+  day: `Day ${index + 1}`,
+  uploads: upload,
+  designs: stats.designsPerDay[index],
+  users: stats.usersPerDay[index],
+}));
 
-  // Sort and paginate users
-  const sortedUsers = [...users].sort((a, b) =>
-    sortOrder === "desc" ? b.loginCount - a.loginCount : a.loginCount - b.loginCount
-  );
+// Sort and paginate users
+const sortedUsers = Array.isArray(users)
+  ? [...users].sort((a, b) =>
+      sortOrder === "desc" ? b.loginCount - a.loginCount : a.loginCount - b.loginCount
+    )
+  : [];
   const totalPages = Math.ceil(users.length / usersPerPage);
   const paginatedUsers = sortedUsers.slice(
     (currentPage - 1) * usersPerPage,
@@ -89,6 +102,29 @@ export default function AdminDashboard() {
 
   const closeModal = () => {
     setSelectedUser(null);
+  };
+
+  const handleArchiveUser = async (user) => {
+    const token = localStorage.getItem("adminToken");
+    const url = user.archived
+      ? `http://localhost:4004/users/${user._id}/unarchive`
+      : `http://localhost:4004/users/${user._id}/archive`;
+    try {
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        // Update user list in state
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === user._id ? { ...u, archived: !u.archived } : u
+          )
+        );
+      }
+    } catch (err) {
+      // Optionally show error
+    }
   };
 
   return (
@@ -144,15 +180,15 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 ">
+        <div className="">
           {activeTab === "dashboard" && (
-            <>
-              <div className="text-center mb-8">
+            <div className="max-w-4xl mx-auto pt-8">
+              <div className="text-center  mb-8">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-2xl font-bold animate-bounce">
                   D
                 </div>
-                <h1 className="text-4xl font-bold text-gray-800 mt-4">Desigih Admin Dashboard</h1>
+                <h1 className="text-4xl font-bold text-gray-800 mt-4">Designih Admin Dashboard</h1>
                 <p className="text-gray-600 mt-2">Keep spreading joy with your insights!</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -238,11 +274,11 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {activeTab === "users" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg bg-gradient-to-br from-gray-50 to-white">
+            <div className="bg-white p-6 rounded-2xl shadow-lg bg-gradient-to-br from-gray-50 to-white w-full max-w-[95vw] mx-auto">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">User List</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-gray-700">
@@ -256,7 +292,9 @@ export default function AdminDashboard() {
                       </th>
                       <th className="p-3">Created At</th>
                       <th className="p-3">Updated At</th>
-                      <th className="p-3 rounded-tr-2xl">View</th>
+                      <th className="p-3">View</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 rounded-tr-2xl">Archive</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -292,6 +330,20 @@ export default function AdminDashboard() {
                             </svg>
                           </button>
                         </td>
+                        <td className="p-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.archived ? 'bg-gray-400 text-white' : 'bg-green-200 text-green-800'}`}>
+                            {user.archived ? 'Archived' : 'Active'}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => handleArchiveUser(user)}
+                            className={`px-3 py-1 rounded-xl text-xs font-bold transition-all duration-200 ${user.archived ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-500 text-white hover:bg-gray-700'}`}
+                            title={user.archived ? 'Unarchive User' : 'Archive User'}
+                          >
+                            {user.archived ? 'Unarchive' : 'Archive'}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -324,7 +376,7 @@ export default function AdminDashboard() {
           {selectedUser && (
             <>
               {/* Overlay with lower opacity */}
-              <div className="fixed inset-0 bg-gray-900 bg-opacity-30 z-40 transition-opacity duration-300" />
+              <div className="fixed inset-0 bg-white/70 backdrop-blur-2xl bg-opacity-50 backdrop-blur-md z-40 transition-opacity duration-300" />
               <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-3xl shadow-xl max-w-lg w-full p-8 transform transition-all duration-300 scale-100 animate-fade-in">
                   <div className="flex justify-between items-center mb-6">
@@ -334,12 +386,7 @@ export default function AdminDashboard() {
                       className="text-gray-500 hover:text-gray-700 transition-all duration-200"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
@@ -359,21 +406,35 @@ export default function AdminDashboard() {
                     <p><span className="font-semibold text-pink-500">Name:</span> {selectedUser.name}</p>
                     <p><span className="font-semibold text-pink-500">Created At:</span> {new Date(selectedUser.createdAt).toLocaleString()}</p>
                     <p><span className="font-semibold text-pink-500">Updated At:</span> {new Date(selectedUser.updatedAt).toLocaleString()}</p>
-                   
                   </div>
                   <button
+                    onClick={() => setShowProjects(true)}
+                    className="mt-6 w-full bg-yellow-500 text-white py-3 rounded-xl hover:bg-yellow-600 transition-all duration-200 font-semibold mb-2"
+                  >
+                    See Projects
+                  </button>
+                  <button
                     onClick={closeModal}
-                    className="mt-6 w-full bg-pink-500 text-white py-3 rounded-xl hover:bg-pink-600 transition-all duration-200 font-semibold"
+                    className="w-full bg-pink-500 text-white py-3 rounded-xl hover:bg-pink-600 transition-all duration-200 font-semibold"
                   >
                     Close
                   </button>
                 </div>
               </div>
+              {/* Projects Modal */}
+              {showProjects && (
+                <AdminUserProjectsModal
+                  isOpen={showProjects}
+                  onClose={() => setShowProjects(false)}
+                  user={selectedUser}
+                  token={localStorage.getItem("adminToken")}
+                />
+              )}
             </>
           )}
 
           <p className="text-center text-sm text-gray-600 mt-8">
-            Designed with ❤️ by <span className="font-semibold text-pink-500">Desigih</span>
+            Designed with ❤️ by <span className="font-semibold text-pink-500">Designih</span>
           </p>
         </div>
       </div>
